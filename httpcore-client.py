@@ -9,12 +9,18 @@ headers = [
 
 request = helloworld_pb2.HelloRequest(name="world")
 serialized_request = request.SerializeToString()
+content_length = len(serialized_request)
 
 with httpcore.SyncConnectionPool(http2=True) as http:
     status_code, headers, stream, ext = http.request(
         method=b"POST",
         url=(b"http", b"127.0.0.1", 50051, b"/helloworld.Greeter/SayHello"),
-        headers=[(b"host", b"127.0.0.1"), *headers],
+        headers=[
+            (b"host", b"127.0.0.1"),
+            (b"content-length", str(content_length).encode()),
+            *headers,
+        ],
+        stream=[serialized_request],
     )
 
     try:
