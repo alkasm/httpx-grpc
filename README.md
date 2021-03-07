@@ -89,3 +89,15 @@ Traceback (most recent call last):
 httpcore.RemoteProtocolError: illegal request line
 ```
 </details>
+
+Additionally when setting up an HTTP/2 server via hyper-h2 (`python hyper-server.py`), the same `RemoteProtocolError: illegal request line` error crops up when hitting it from httpcore or httpx, and the server raises an `h2.exceptions.ProtocolError: Invalid HTTP/2 preamble`. Httpcore is still going through an HTTP/1.1 connection in both cases, according to a little print I added in `SyncHTTPConnection.request()` (and according to the traceback):
+```
+http2: True
+is_http11: True
+is_http2: False
+```
+
+When hitting the hyper-h2 server with the gRPC client, the request is logged as expected:
+```
+<RequestReceived stream_id:1, headers:[(':scheme', 'http'), (':method', 'POST'), (':authority', '127.0.0.1:50051'), (':path', '/helloworld.Greeter/SayHello'), ('te', 'trailers'), ('content-type', 'application/grpc'), ('user-agent', 'grpc-python/1.36.1 grpc-c/15.0.0 (osx; chttp2)'), ('grpc-accept-encoding', 'identity,deflate,gzip'), ('accept-encoding', 'identity,gzip')]>
+```
