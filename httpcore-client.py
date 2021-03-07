@@ -10,6 +10,7 @@ headers = [
 request = helloworld_pb2.HelloRequest(name="world")
 serialized_request = request.SerializeToString()
 content_length = len(serialized_request)
+req_stream = httpcore.PlainByteStream(serialized_request)
 
 with httpcore.SyncConnectionPool(http2=True) as http:
     status_code, headers, stream, ext = http.request(
@@ -20,7 +21,7 @@ with httpcore.SyncConnectionPool(http2=True) as http:
             (b"content-length", str(content_length).encode()),
             *headers,
         ],
-        stream=[serialized_request],
+        stream=req_stream,
     )
 
     try:
